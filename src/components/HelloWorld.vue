@@ -1,103 +1,170 @@
-<script setup lang="ts">
-import { ref } from "vue";
-import { ElMessage } from "element-plus";
-
-defineProps<{ msg: string }>();
-
-const count = ref(0);
-const input = ref("element-plus");
-
-const curDate = ref("");
-
-const toast = () => {
-  ElMessage.success("Hello");
-};
-
-const value1 = ref(true);
-</script>
+<style>
+</style>
 
 <template>
-  <h1 color="$ep-color-primary">{{ msg }}</h1>
-
-  <p>
-    See
-    <a href="https://element-plus.org" target="_blank">element-plus</a> for more
-    information.
-  </p>
-
-  <!-- example components -->
-  <div class="mb-4">
-    <el-button size="large" @click="toast">El Message</el-button>
-  </div>
-
-  <div class="my-2 text-center flex flex-wrap justify-center items-center">
-    <el-button @click="count++">count is: {{ count }}</el-button>
-    <el-button type="primary" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="success" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="warning" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="danger" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="info" @click="count++">count is: {{ count }}</el-button>
-  </div>
-
   <div>
-    <el-tag type="success" class="m-1">Tag 1</el-tag>
-    <el-tag type="warning" class="m-1">Tag 1</el-tag>
-    <el-tag type="danger" class="m-1">Tag 1</el-tag>
-    <el-tag type="info" class="m-1">Tag 1</el-tag>
+    <el-button @click="addDataToDB([])">addDataToDB</el-button>
+    <el-button @click="getDataFromDB">getDataFromDB</el-button>
+    <el-button @click="clearDataToDB">clearDataToDB</el-button>
+    <el-input v-model="address" placeholder="address">
+      <template #append>
+        <el-button :icon="Search" @click="onSubmit" />
+      </template>
+    </el-input>
+
+    <el-table :data="utxos" style="width: 100%">
+      <el-table-column
+        prop="tx_hash"
+        label="Transaction Hash"
+      ></el-table-column>
+      <el-table-column
+        prop="output_index"
+        label="Output Index"
+      ></el-table-column>
+      <el-table-column
+        prop="amount"
+        label="Amount"
+        :formatter="formatAmount"
+      ></el-table-column>
+    </el-table>
   </div>
-
-  <div>
-    <el-switch v-model="value1" />
-    <el-switch
-      v-model="value1"
-      class="m-2"
-      style="--ep-switch-on-color: black; --ep-switch-off-color: gray;"
-    />
-  </div>
-
-  <div class="my-2">
-    <el-input class="m-2" v-model="input" style="width: 200px" />
-    <el-date-picker
-      class="m-2"
-      v-model="curDate"
-      type="date"
-      placeholder="Pick a day"
-    ></el-date-picker>
-  </div>
-
-  <p>For example, we can custom primary color to 'green'.</p>
-
-  <p>
-    Edit
-    <code>components/HelloWorld.vue</code> to test components.
-  </p>
-  <p>
-    Edit
-    <code>styles/element/var.scss</code> to test scss variables.
-  </p>
-
-  <p>
-    Full Example:
-    <a
-      href="https://github.com/element-plus/element-plus-vite-starter"
-      target="_blank"
-      >element-plus-vite-starter</a
-    >
-    | On demand Example:
-    <a
-      href="https://github.com/element-plus/unplugin-element-plus"
-      target="_blank"
-      >unplugin-element-plus/examples/vite</a
-    >
-  </p>
 </template>
 
-<style>
-.ep-button {
-  margin: 4px;
-}
-.ep-button + .ep-button {
-  margin-left: 0;
-  margin: 4px;
-}
-</style>
+<script lang="ts">
+import axios from "axios";
+
+const DB_NAME = "TestDB";
+const STORE_NAME = "utxoMap";
+
+let db: IDBDatabase;
+
+var baseUrl = "http://localhost:8080/";
+
+export default {
+  data() {
+    return {
+      // address:
+      //   "addr1qxu7nks0vt5te3dx2wmwq5ytz7td8hsvytl2zwkrjvwm0vmy3va7sk0l7yrpe9m3s3230ynqef8p0997ddhvkpkrkuysdhwdrg",
+      address:
+        "addr_test1qqvrxad4q4426ajkaddj5cl653mcr99svv4x87ke0uuhzheghnevm2hmuu6j5ncfe0yvzfm6wfrary64wuhd7jufetnq4zalvc",
+      utxos: [] as any[],
+    };
+  },
+
+  computed: {},
+
+  mounted() {
+    const request = indexedDB.open(DB_NAME, 2);
+
+    request.onerror = (event) => {
+      console.log("打开数据库出错！", (event.target as any).error);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as any).result;
+      // const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      // store.createIndex("id", "id", { unique: true });
+
+      const store = db.createObjectStore(STORE_NAME);
+    };
+
+    request.onsuccess = (event) => {
+      db = request.result;
+      console.log("成功打开数据库！");
+      this.getDataFromDB();
+    };
+  },
+
+  methods: {
+    formatAmount(row: any) {
+      return row.amount
+        .map((item: any) => `${item.quantity} ${item.unit}`)
+        .join(", ");
+    },
+
+    clearDataToDB() {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+
+      transaction.oncomplete = () => {
+        console.log("清除数据库！");
+      };
+    },
+
+    deleteDataToDBByAddress(address: string) {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      store.delete(address);
+
+      transaction.oncomplete = () => {
+        console.log("删除数据！");
+      };
+    },
+
+    addDataToDB(utxos: []) {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+
+      store.add(utxos, this.address);
+
+      transaction.oncomplete = () => {
+        console.log("成功添加数据到数据库！");
+      };
+
+      transaction.onerror = (event) => {
+        console.log("添加数据到数据库出错！", (event.target as any).error);
+      };
+    },
+
+    getDataFromDB() {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(this.address);
+
+      request.onsuccess = (event) => {
+        this.utxos = (event.target as any).result;
+        // event.target.result
+        console.log((event.target as any).result);
+      };
+      request.onerror = (event) => {
+        console.log("从数据库获取数据出错！", (event.target as any).error);
+      };
+    },
+
+    onSubmit() {
+      axios
+        .get(
+          baseUrl +
+            "utxo/getUtxoByAddress?address=" +
+            this.address +
+            "&count=" +
+            100 +
+            "&page=" +
+            1
+        )
+        .then((res: any) => {
+          this.utxos = res.data.value;
+
+          this.deleteDataToDBByAddress(this.address);
+          this.addDataToDB(res.data.value);
+        })
+        .catch((err: any) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    },
+  },
+};
+</script>
+
+
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { Search } from "@element-plus/icons-vue";
+</script>
+
+
+
+
+
