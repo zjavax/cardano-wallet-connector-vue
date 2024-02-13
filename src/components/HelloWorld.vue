@@ -12,20 +12,22 @@
       </template>
     </el-input>
 
-    <el-table :data="utxos" style="width: 100%">
-      <el-table-column
-        prop="tx_hash"
-        label="Transaction Hash"
-      ></el-table-column>
-      <el-table-column
-        prop="output_index"
-        label="Output Index"
-      ></el-table-column>
-      <el-table-column
-        prop="amount"
-        label="Amount"
-        :formatter="formatAmount"
-      ></el-table-column>
+    <el-table :data="utxos" style="width: 100%; margin-top: 20px">
+      <el-table-column label="Hash # Idx" width="600px">
+        <template #default="scope">
+          <span>{{ scope.row.tx_hash }}#{{ scope.row.unit }}</span>
+          <br />
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Amount">
+        <template #default="props">
+          <el-table :data="props.row.amount" :show-header="false">
+            <el-table-column prop="unit" />
+            <el-table-column prop="quantity" width="200px" />
+          </el-table>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
@@ -76,12 +78,6 @@ export default {
   },
 
   methods: {
-    formatAmount(row: any) {
-      return row.amount
-        .map((item: any) => `${item.quantity} ${item.unit}`)
-        .join(", ");
-    },
-
     clearDataToDB() {
       const transaction = db.transaction(STORE_NAME, "readwrite");
       const store = transaction.objectStore(STORE_NAME);
@@ -160,7 +156,6 @@ export default {
 
 
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { Search } from "@element-plus/icons-vue";
 </script>
 
