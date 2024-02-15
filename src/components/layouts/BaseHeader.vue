@@ -66,9 +66,6 @@ import { Buffer } from "buffer";
 import { mapState, mapActions } from "vuex";
 
 export default {
-  computed: {
-    ...mapState(["whichWalletSelected"]),
-  },
   data() {
     return {
       // address:
@@ -80,7 +77,7 @@ export default {
 
       selectedTabId: "1",
       // whichWalletSelected: undefined as any,
-      walletFound: false,
+      // walletFound: false,
       walletIsEnabled: false,
       walletName: undefined as any,
       walletIcon: undefined as any,
@@ -118,8 +115,12 @@ export default {
     };
   },
 
+  computed: {
+    ...mapState(["whichWalletSelected", "walletFound"]),
+  },
+
   methods: {
-    ...mapActions(["updateWhichWalletSelected"]),
+    ...mapActions(["updateWhichWalletSelected", "updateWalletFound"]),
     async refreshData() {
       if (this.checkIfWalletFound()) {
         await this.getAPIVersion();
@@ -305,8 +306,10 @@ export default {
     },
 
     checkIfWalletFound() {
-      const walletFound = !!(window as any).cardano?.[this.whichWalletSelected];
-      return walletFound;
+      this.updateWalletFound(
+        !!(window as any).cardano?.[this.whichWalletSelected]
+      );
+      return this.walletFound;
     },
 
     handleWalletSelect() {
@@ -334,6 +337,12 @@ export default {
     </el-sub-menu>
     <el-menu-item index="3" disabled>Info</el-menu-item>
     <el-menu-item index="4">Orders</el-menu-item>
+
+    <div class="flex-grow" />
+    <el-menu-item ref="buttonRef" v-click-outside="onClickOutside">
+      Connect Wallet
+    </el-menu-item>
+
     <el-menu-item h="full" @click="toggleDark()">
       <button
         class="border-none w-full bg-transparent cursor-pointer"
@@ -341,10 +350,6 @@ export default {
       >
         <i inline-flex i="dark:ep-moon ep-sunny" />
       </button>
-    </el-menu-item>
-    <div class="flex-grow" />
-    <el-menu-item ref="buttonRef" v-click-outside="onClickOutside">
-      Connect Wallet
     </el-menu-item>
   </el-menu>
 

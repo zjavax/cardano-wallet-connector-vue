@@ -2,6 +2,21 @@
 </style>
 
 <template>
+  <el-descriptions title="Wallet Info">
+    <el-descriptions-item label="Wallet Found">{{
+      walletFound
+    }}</el-descriptions-item>
+    <el-descriptions-item label="Telephone">18100000000</el-descriptions-item>
+    <el-descriptions-item label="Place">Suzhou</el-descriptions-item>
+    <el-descriptions-item label="Remarks">
+      <el-tag size="small">School</el-tag>
+    </el-descriptions-item>
+    <el-descriptions-item label="Address"
+      >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu
+      Province</el-descriptions-item
+    >
+  </el-descriptions>
+
   <div>
     <el-button @click="addDataToDB([])">addDataToDB</el-button>
     <el-button @click="getDataFromDB">getDataFromDB</el-button>
@@ -35,6 +50,7 @@
 <script lang="ts">
 import axios from "axios";
 import { ref } from "vue";
+import { mapState } from "vuex";
 
 const DB_NAME = "TestDB";
 const STORE_NAME = "utxoMap";
@@ -54,7 +70,9 @@ export default {
     };
   },
 
-  computed: {},
+  computed: {
+    ...mapState(["whichWalletSelected", "walletFound"]),
+  },
 
   mounted() {
     const request = indexedDB.open(DB_NAME, 2);
@@ -158,8 +176,6 @@ export default {
 
 <script setup lang="ts">
 import { Search } from "@element-plus/icons-vue";
-
-// You can return any data or methods here that you want to expose to the template
 </script>
 
 
