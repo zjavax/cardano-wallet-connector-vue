@@ -3,12 +3,6 @@
 
 <template>
   <div>
-    <el-radio-group v-model="wallet">
-      <el-radio label="nami" size="large">nami({{ namiFound }})</el-radio>
-      <el-radio label="eternl" size="large">eternl({{ eternlFound }})</el-radio>
-      <el-radio label="flint" size="large">flint({{ flintFound }})</el-radio>
-    </el-radio-group>
-
     <el-button @click="Connect">Connect</el-button>
     <el-button @click="DisConnect">DisConnect</el-button>
 
@@ -204,6 +198,7 @@ export default {
 
       try {
         const rawUtxos = await this.API.getUtxos();
+        console.log(rawUtxos);
 
         for (const rawUtxo of rawUtxos) {
           const utxo = TransactionUnspentOutput.from_bytes(
@@ -446,8 +441,6 @@ export default {
 
 <script setup lang="ts">
 import { Search } from "@element-plus/icons-vue";
-
-const windowasany = window as any;
 </script>
 
 
