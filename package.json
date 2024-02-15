@@ -14,7 +14,8 @@
     "axios": "^1.6.7",
     "buffer": "^6.0.3",
     "element-plus": "^2.3.12",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@iconify-json/ep": "^1.1.12",

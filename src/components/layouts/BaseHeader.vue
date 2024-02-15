@@ -63,18 +63,23 @@ import {
   StakeCredential,
 } from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from "buffer";
+import { mapState, mapActions } from "vuex";
+
 export default {
+  computed: {
+    ...mapState(["whichWalletSelected"]),
+  },
   data() {
     return {
       // address:
       //   "addr1qxu7nks0vt5te3dx2wmwq5ytz7td8hsvytl2zwkrjvwm0vmy3va7sk0l7yrpe9m3s3230ynqef8p0997ddhvkpkrkuysdhwdrg",
       address:
         "addr_test1qqvrxad4q4426ajkaddj5cl653mcr99svv4x87ke0uuhzheghnevm2hmuu6j5ncfe0yvzfm6wfrary64wuhd7jufetnq4zalvc",
-      // wallet: ref("eternl"),
+      wallet: ref("eternl"),
       API: undefined as any,
 
       selectedTabId: "1",
-      whichWalletSelected: undefined as any,
+      // whichWalletSelected: undefined as any,
       walletFound: false,
       walletIsEnabled: false,
       walletName: undefined as any,
@@ -113,11 +118,8 @@ export default {
     };
   },
 
-  computed: {},
-
-  mounted() {},
-
   methods: {
+    ...mapActions(["updateWhichWalletSelected"]),
     async refreshData() {
       if (this.checkIfWalletFound()) {
         await this.getAPIVersion();
@@ -306,6 +308,11 @@ export default {
       const walletFound = !!(window as any).cardano?.[this.whichWalletSelected];
       return walletFound;
     },
+
+    handleWalletSelect() {
+      this.updateWhichWalletSelected(this.wallet);
+      this.refreshData();
+    },
   },
 };
 </script>
@@ -347,7 +354,7 @@ export default {
     trigger="click"
     virtual-triggering
   >
-    <el-radio-group v-model="whichWalletSelected" @change="refreshData">
+    <el-radio-group v-model="wallet" @change="handleWalletSelect">
       <el-radio label="nami" size="large" :disabled="!namiFound">nami</el-radio>
       <el-radio label="eternl" size="large" :disabled="!eternlFound"
         >eternl</el-radio

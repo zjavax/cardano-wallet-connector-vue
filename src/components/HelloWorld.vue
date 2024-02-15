@@ -158,6 +158,8 @@ export default {
 
 <script setup lang="ts">
 import { Search } from "@element-plus/icons-vue";
+
+// You can return any data or methods here that you want to expose to the template
 </script>
 
 
