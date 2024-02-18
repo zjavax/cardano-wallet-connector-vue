@@ -18,6 +18,7 @@
   </el-descriptions>
 
   <div>
+    <el-button @click="submitTx">提交事务</el-button>
     <el-button @click="addDataToDB([])">addDataToDB</el-button>
     <el-button @click="getDataFromDB">getDataFromDB</el-button>
     <el-button @click="clearDataToDB">clearDataToDB</el-button>
@@ -188,6 +189,12 @@ export default {
 
   methods: {
     ...mapActions(["updateWhichWalletSelected", "updateWalletFound"]),
+
+    async submitTx() {
+      const tx = "";
+      const submittedTxHash = await this.API.submitTx(tx);
+      console.log(submittedTxHash);
+    },
 
     clearDataToDB() {
       const transaction = db.transaction(STORE_NAME, "readwrite");
