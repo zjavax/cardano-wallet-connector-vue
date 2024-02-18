@@ -21,55 +21,35 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from "vue";
-import { ElForm, ElFormItem, ElInput, ElButton } from "element-plus"; // Import required Element-Plus components
 import axios from "axios";
 
-var baseUrl = "http://localhost:8080/";
+const baseUrl = "http://localhost:8080/";
 
-export default {
-  components: {
-    ElForm,
-    ElFormItem,
-    ElInput,
-    ElButton,
-  },
-  setup() {
-    const utxoStrList = ref("");
-    const receiverData = ref({
-      receiverAddress: "",
+const utxoStrList = ref("");
+const receiverData = ref({
+  receiverAddress: "",
+});
+
+const submitForm = () => {
+  const receiverData2 = {
+    receiverAddress: receiverData.value.receiverAddress,
+  };
+
+  // Make the API call using Axios
+  axios
+    .post(
+      baseUrl + "utxo/getTxWithoutSign?utxoStrList=" + utxoStrList.value,
+      receiverData2
+    )
+    .then((response) => {
+      // Handle the response as needed
+      console.log(response.data);
+    })
+    .catch((error) => {
+      // Handle any errors
+      console.log(error);
     });
-
-    const submitForm = () => {
-      const receiverData2 = {
-        receiverAddress: receiverData.value.receiverAddress,
-      };
-
-      // Make the API call using Axios
-      axios
-        .post(
-          baseUrl + "utxo/getTxWithoutSign?utxoStrList=" + utxoStrList.value,
-          receiverData2
-        )
-        .then((response) => {
-          // Handle the response as needed
-          console.log(response.data);
-        })
-        .catch((error) => {
-          // Handle any errors
-          console.log(error);
-        });
-    };
-
-    return {
-      utxoStrList,
-      receiverData,
-      submitForm,
-    };
-  },
 };
 </script>
-
-
-
