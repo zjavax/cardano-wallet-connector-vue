@@ -42,20 +42,15 @@ export default {
     });
 
     const submitForm = () => {
-      // const collectFromUtxo = {
-      //   utxoStrList: utxoStrList.value.split("\n"),
-      //   receiverData: {
-      //     receiverAddress: receiverData.value.receiverAddress,
-      //   },
-      // };
+      const receiverData2 = {
+        receiverAddress: receiverData.value.receiverAddress,
+      };
 
       // Make the API call using Axios
       axios
         .post(
           baseUrl + "utxo/getTxWithoutSign?utxoStrList=" + utxoStrList.value,
-          {
-            receiverAddress: receiverData.value.receiverAddress,
-          }
+          receiverData2
         )
         .then((response) => {
           // Handle the response as needed
