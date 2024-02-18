@@ -4,7 +4,7 @@
     <div class="flex main-container">
       <BaseSide />
       <div w="full" py="4">
-        <HelloWorld />
+        <router-view></router-view>
       </div>
     </div>
   </el-config-provider>

@@ -46,7 +46,7 @@ export default {
 </script>
 
 <template>
-  <el-menu class="el-menu-demo" mode="horizontal" :ellipsis="false">
+  <el-menu class="el-menu-demo" mode="horizontal" :ellipsis="false" router>
     <el-menu-item index="1">Element Plus</el-menu-item>
     <el-sub-menu index="2">
       <template #title>Workspace</template>
@@ -62,6 +62,7 @@ export default {
     </el-sub-menu>
     <el-menu-item index="3" disabled>Info</el-menu-item>
     <el-menu-item index="4">Orders</el-menu-item>
+    <el-menu-item index="/CollectFromUtxoList">多钱包发送</el-menu-item>
 
     <div class="flex-grow" />
     <el-menu-item ref="buttonRef" v-click-outside="onClickOutside">
