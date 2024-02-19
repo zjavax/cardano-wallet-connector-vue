@@ -18,6 +18,7 @@
   </el-descriptions>
 
   <div>
+    <el-button @click="refreshData">refreshData</el-button>
     <el-button @click="submitTx">提交事务</el-button>
     <el-button @click="addDataToDB([])">addDataToDB</el-button>
     <el-button @click="getDataFromDB">getDataFromDB</el-button>
