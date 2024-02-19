@@ -47,8 +47,8 @@ export default {
 
 <template>
   <el-menu class="el-menu-demo" mode="horizontal" :ellipsis="false" router>
-    <el-menu-item index="1">Element Plus</el-menu-item>
-    <el-sub-menu index="2">
+    <el-menu-item index="/">Cardano</el-menu-item>
+    <!-- <el-sub-menu index="2">
       <template #title>Workspace</template>
       <el-menu-item index="2-1">item one</el-menu-item>
       <el-menu-item index="2-2">item two</el-menu-item>
@@ -61,7 +61,7 @@ export default {
       </el-sub-menu>
     </el-sub-menu>
     <el-menu-item index="3" disabled>Info</el-menu-item>
-    <el-menu-item index="4">Orders</el-menu-item>
+    <el-menu-item index="4">Orders</el-menu-item> -->
     <el-menu-item index="/CollectFromUtxoList">多钱包发送</el-menu-item>
 
     <div class="flex-grow" />
