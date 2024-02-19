@@ -1,5 +1,3 @@
-
-
 <template>
   <div>
     <el-divider content-position="left">inputs 输入</el-divider>
@@ -62,7 +60,10 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="sign()">Sign</el-button>
+        <el-button type="primary" @click="sign(cborHex)">Sign</el-button>
+        <el-button type="primary" @click="cborHex_to_tx_json(cborHex)"
+          >to_tx_json</el-button
+        >
       </el-form-item>
     </el-form>
 
@@ -78,17 +79,20 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="continue_sign()"
+        <el-button type="primary" @click="sign(cborHex_signed)"
           >Continue Sign</el-button
+        >
+        <el-button type="primary" @click="cborHex_to_tx_json(cborHex_signed)"
+          >to_tx_json</el-button
         >
       </el-form-item>
     </el-form>
 
     <el-form label-width="200px">
-      <el-form-item label="cborHex_tx_json">
+      <el-form-item label="tx_json">
         <el-input
           type="textarea"
-          v-model="cborHex_tx_json"
+          v-model="tx_json"
           clearable
           :autosize="{ minRows: 6, maxRows: 120 }"
         ></el-input
@@ -124,7 +128,7 @@ let cborHex = ref(
   "84a5008182582074f47f80cf73dbb5499a2fff53d4731f00226401143998f8dce9745c4aa474710101868258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a001e84808258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a04c478858258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a02639b858258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a0131cdc38258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a0131cdc38258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a004c4b40021a0002be85031a027c3f6c0800a0f5f6"
 );
 
-let cborHex_tx_json = ref("");
+let tx_json = ref("");
 
 let cborHex_signed = ref(
   "84a5008182582074f47f80cf73dbb5499a2fff53d4731f00226401143998f8dce9745c4aa474710101868258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a001e84808258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a04c478858258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a02639b858258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a0131cdc38258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a0131cdc38258390005dbe3674bb9490b7b1ac958f90319b5a82bd2043942634b0665a85df8b995b728d1c7463b4a8ea78cbaf7091cdb13d3f25f1e712b1557371a004c4b40021a0002be85031a027c3f6c0800a0f5f6"
@@ -148,8 +152,8 @@ function parseValue(value: any) {
   return value.replace(/\$\s?|(,*)/g, "");
 }
 
-const sign = async () => {
-  const tx = Transaction.from_hex(cborHex.value);
+const sign = async (hex: any) => {
+  const tx = Transaction.from_hex(hex);
 
   API = await (window as any).cardano["eternl"].enable();
   let txVkeyWitnesses = await API.signTx(cborHex.value, true);
@@ -169,11 +173,17 @@ const sign = async () => {
   console.log(submittedTxHash);
 };
 
-const continue_sign = async () => {
-  const tx = Transaction.from_hex(cborHex.value);
-  cborHex_tx_json.value = tx.to_json();
+const cborHex_to_tx_json = (hex: any) => {
+  const tx = Transaction.from_hex(hex);
+  tx_json.value = tx.to_json();
   console.log(tx.to_json());
 };
+
+// const continue_sign = () => {
+//   const tx = Transaction.from_hex(cborHex.value);
+//   tx_json.value = tx.to_json();
+//   console.log(tx.to_json());
+// };
 
 const submitForm = () => {
   const receiverData2 = {
