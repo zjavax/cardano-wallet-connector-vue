@@ -5,7 +5,12 @@
     <el-divider content-position="left">inputs 输入</el-divider>
     <el-form label-width="200px">
       <el-form-item label="UTXO(Hash#Idx)" required>
-        <el-input type="textarea" v-model="utxoStrListStr" clearable></el-input>
+        <el-input
+          type="textarea"
+          v-model="utxoStrListStr"
+          clearable
+          :autosize="{ minRows: 6, maxRows: 12 }"
+        ></el-input>
       </el-form-item>
     </el-form>
 
@@ -13,10 +18,6 @@
     <el-form :model="receiverData" label-width="200px">
       <el-form-item label="Receiver Address" required>
         <el-input v-model="receiverData.receiverAddress" clearable></el-input>
-      </el-form-item>
-
-      <el-form-item label="signersCount" required>
-        <el-input-number v-model="receiverData.signersCount" :min="1" />
       </el-form-item>
 
       <el-form-item label="assetList">
@@ -28,9 +29,14 @@
         />
       </el-form-item>
 
+      <el-form-item label="signersCount" required>
+        <el-input-number v-model="receiverData.signersCount" :min="1" />
+      </el-form-item>
+
       <el-divider content-position="left">Extract rewards 提取奖励</el-divider>
       <el-form-item label="奖励地址">
         <el-input
+          :autosize="{ minRows: 4, maxRows: 8 }"
           clearable
           type="textarea"
           placeholder="支持addr和stake"
