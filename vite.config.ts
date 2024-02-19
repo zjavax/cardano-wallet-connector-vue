@@ -56,10 +56,15 @@ export default defineConfig({
           warn: true,
         }),
       ],
-      transformers: [
-        transformerDirectives(),
-        transformerVariantGroup(),
-      ]
+      transformers: [transformerDirectives(), transformerVariantGroup()],
     }),
   ],
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  build: {
+    target: 'esnext',
+  },
 })
