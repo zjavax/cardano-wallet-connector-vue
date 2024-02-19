@@ -109,6 +109,7 @@ import {
 import axios from "axios";
 import { ref } from "vue";
 import { Buffer } from "buffer";
+import { Blockfrost, Lucid } from "lucid-cardano"; // NPM
 
 const baseUrl = "http://localhost:8080/";
 
@@ -153,6 +154,21 @@ function parseValue(value: any) {
 }
 
 const sign = async (hex: any) => {
+  const api = await window.cardano.eternl.enable();
+
+  const lucid = await Lucid.new();
+  lucid.selectWallet(api);
+
+  const tx = lucid.fromTx(hex);
+
+  const signedTx = await tx.sign().complete();
+  // const txHash = await signedTx.submit();
+  // console.log(txHash);
+
+  console.log(12);
+};
+
+const sign2 = async (hex: any) => {
   const tx = Transaction.from_hex(hex);
 
   API = await (window as any).cardano["eternl"].enable();
