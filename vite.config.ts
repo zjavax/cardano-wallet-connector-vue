@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import wasm from 'vite-plugin-wasm'
 
 import Unocss from 'unocss/vite'
 import {
@@ -32,6 +33,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    wasm(),
     Components({
       // allow auto load markdown components under `./src/components/`
       extensions: ['vue', 'md'],
