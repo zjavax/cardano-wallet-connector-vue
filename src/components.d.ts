@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     '副本': typeof import('./components/layouts/BaseHeader - 副本.vue')['default']
     BaseHeader: typeof import('./components/layouts/BaseHeader.vue')['default']
+    BaseSetting: typeof import('./components/BaseSetting.vue')['default']
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
     CollectFromUtxoList: typeof import('./components/CollectFromUtxoList.vue')['default']
     copy: typeof import('./components/HelloWorld copy.vue')['default']

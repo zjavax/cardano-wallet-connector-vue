@@ -69,6 +69,8 @@ export default {
       Connect Wallet
     </el-menu-item>
 
+    <el-menu-item index="/BaseSetting">Base Setting</el-menu-item>
+
     <el-menu-item h="full" @click="toggleDark()">
       <button
         class="border-none w-full bg-transparent cursor-pointer"
