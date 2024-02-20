@@ -30,11 +30,11 @@
             state.walletFound
           }}</el-descriptions-item>
           <el-descriptions-item label="Wallet Connected"
-            >18100000000</el-descriptions-item
+            >state.walletFound.value</el-descriptions-item
           >
-          <el-descriptions-item label="Wallet API version"
-            >Suzhou</el-descriptions-item
-          >
+          <el-descriptions-item label="Wallet API version">{{
+            state.walletAPIVersion
+          }}</el-descriptions-item>
           <el-descriptions-item label="Wallet name:"
             >Suzhou</el-descriptions-item
           >
@@ -68,52 +68,240 @@ import { ref } from "vue";
 import { Buffer } from "buffer";
 import axios from "axios";
 import { Search } from "@element-plus/icons-vue";
+import {
+  Address,
+  Value,
+  TransactionUnspentOutput,
+} from "@emurgo/cardano-serialization-lib-asmjs";
 
 const namiFound = !!(window as any).cardano.nami;
 const eternlFound = !!(window as any).cardano.eternl;
 const flintFound = !!(window as any).cardano.flint;
 
 const refreshData = async () => {
-  checkIfWalletFound();
-  // if (checkIfWalletFound()) {
-  //   await this.getAPIVersion();
-  //   await this.getWalletName();
-  //   const walletEnabled = await this.enableWallet();
-  //   if (walletEnabled) {
-  //     await this.getNetworkId();
-  //     await this.getUtxos();
-  //     await this.getCollateral();
-  //     // await this.getBalance();
-  //     // await this.getChangeAddress();
-  //     // await this.getRewardAddresses();
-  //     await this.getUsedAddresses();
-  //   }
-  // }
+  if (checkIfWalletFound()) {
+    await getAPIVersion();
+    await getWalletName();
+    const walletEnabled = await enableWallet();
+    if (walletEnabled) {
+      await getNetworkId();
+      await getUtxos();
+      await getCollateral();
+      await getBalance();
+      await getChangeAddress();
+      await getRewardAddresses();
+      await getUsedAddresses();
+    }
+  }
+};
+
+const getUtxos = async () => {
+  let Utxos = [];
+
+  try {
+    const rawUtxos = await API.getUtxos();
+
+    for (const rawUtxo of rawUtxos) {
+      const utxo = TransactionUnspentOutput.from_bytes(
+        Buffer.from(rawUtxo, "hex")
+      );
+      const input = utxo.input();
+      const txid = Buffer.from(
+        input.transaction_id().to_bytes() as any,
+        "utf8"
+      ).toString("hex");
+      const txindx = input.index();
+      const output = utxo.output();
+      const amount = output.amount().coin().to_str(); // ADA amount in lovelace
+      const multiasset = output.amount().multiasset();
+      let multiAssetStr = "";
+
+      if (multiasset) {
+        const keys = multiasset.keys(); // policy Ids of thee multiasset
+        const N = keys.len();
+        // console.log(`${N} Multiassets in the UTXO`)
+
+        for (let i = 0; i < N; i++) {
+          const policyId = keys.get(i);
+          const policyIdHex = Buffer.from(
+            policyId.to_bytes() as any,
+            "utf8"
+          ).toString("hex");
+          // console.log(`policyId: ${policyIdHex}`)
+          const assets = multiasset.get(policyId);
+          const assetNames = (assets as any).keys();
+          const K = assetNames.len();
+          // console.log(`${K} Assets in the Multiasset`)
+
+          for (let j = 0; j < K; j++) {
+            const assetName = assetNames.get(j);
+            const assetNameString = Buffer.from(
+              assetName.name(),
+              "utf8"
+            ).toString();
+            const assetNameHex = Buffer.from(assetName.name(), "utf8").toString(
+              "hex"
+            );
+            const multiassetAmt = multiasset.get_asset(policyId, assetName);
+            multiAssetStr += `+ ${multiassetAmt.to_str()} + ${policyIdHex}.${assetNameHex} (${assetNameString})`;
+            // console.log(assetNameString)
+            // console.log(`Asset Name: ${assetNameHex}`)
+          }
+        }
+      }
+
+      const obj = {
+        txid: txid,
+        txindx: txindx,
+        amount: amount,
+        str: `${txid} #${txindx} = ${amount}`,
+        multiAssetStr: multiAssetStr,
+        TransactionUnspentOutput: utxo,
+      };
+      Utxos.push(obj);
+      // console.log(`utxo: ${str}`)
+    }
+    state.Utxos.value = Utxos;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getUsedAddresses = async () => {
+  try {
+    const raw = await API.getUsedAddresses();
+    const rawFirst = raw[0];
+    const usedAddress = Address.from_bytes(
+      Buffer.from(rawFirst, "hex")
+    ).to_bech32();
+    // console.log(rewardAddress)
+    state.usedAddress.value = usedAddress;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getCollateral = async () => {
+  let CollatUtxos = [];
+
+  try {
+    let collateral = [];
+
+    const wallet = state.whichWalletSelected.value;
+    if (wallet === "nami") {
+      collateral = await API.experimental.getCollateral();
+    } else {
+      collateral = await API.getCollateral();
+    }
+
+    for (const x of collateral) {
+      const utxo = TransactionUnspentOutput.from_bytes(Buffer.from(x, "hex"));
+      CollatUtxos.push(utxo);
+      // console.log(utxo)
+    }
+
+    state.CollatUtxos.value = CollatUtxos;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getBalance = async () => {
+  try {
+    const balanceCBORHex = await API.getBalance();
+
+    const balance = Value.from_bytes(Buffer.from(balanceCBORHex, "hex"))
+      .coin()
+      .to_str();
+
+    state.balance.value = balance;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getChangeAddress = async () => {
+  try {
+    const raw = await API.getChangeAddress();
+    const changeAddress = Address.from_bytes(
+      Buffer.from(raw, "hex")
+    ).to_bech32();
+    state.changeAddress.value = changeAddress;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getRewardAddresses = async () => {
+  try {
+    const raw = await API.getRewardAddresses();
+    const rawFirst = raw[0];
+    const rewardAddress = Address.from_bytes(
+      Buffer.from(rawFirst, "hex")
+    ).to_bech32();
+
+    state.rewardAddress.value = rewardAddress;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getNetworkId = async () => {
+  try {
+    const networkId = await API.getNetworkId();
+    state.networkId.value = networkId;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const enableWallet = async () => {
+  try {
+    // window.cardano.nami.enable();
+    API = await (window as any).cardano[
+      state.whichWalletSelected.value
+    ].enable();
+  } catch (err) {
+    console.log(err);
+  }
+  return checkIfWalletEnabled();
+};
+
+const checkIfWalletEnabled = async () => {
+  let walletIsEnabled = false;
+
+  try {
+    const walletName = state.whichWalletSelected.value;
+    walletIsEnabled = await window.cardano[walletName].isEnabled();
+  } catch (err) {
+    console.log(err);
+  }
+
+  state.walletIsEnabled = walletIsEnabled;
+  return walletIsEnabled;
+};
+
+const getWalletName = () => {
+  const walletKey = state.whichWalletSelected.value;
+  const walletName = window?.cardano?.[walletKey].name;
+  state.walletName.value = walletName;
+  return walletName;
+};
+
+const getAPIVersion = async () => {
+  const walletAPIVersion = (window as any)?.cardano?.[
+    state.whichWalletSelected.value
+  ].apiVersion;
+  state.walletAPIVersion.value = walletAPIVersion;
+  return walletAPIVersion;
 };
 
 // 检查浏览器是否有钱包（但是不检查钱包是否开启dapp(enable)）
-const checkIfWalletFound = async () => {
-  state.walletFound.value =
-    !!window?.cardano?.[state.whichWalletSelected.value];
-  console.log("state.walletFound=" + state.walletFound);
-  return state.walletFound;
-};
-
-const handleWalletSelect1 = () => {
-  if (state.whichWalletSelected.value == "wallet_id") {
-    if (state.wallet_id.value == "") {
-      state.whichWalletSelected.value = "";
-      alert("please input wallet id");
-      return;
-    }
-    state.whichWalletSelected.value = state.wallet_id.value;
-  }
-
-  console.log(state.whichWalletSelected.value);
-
-  // alert(state.whichWalletSelected.value);
-
-  refreshData();
+const checkIfWalletFound = () => {
+  const walletKey = state.whichWalletSelected.value;
+  const walletFound = !!window?.cardano?.[walletKey];
+  state.walletFound.value = walletFound;
+  return walletFound;
 };
 
 const handleWalletSelect = () => {
@@ -127,24 +315,25 @@ const handleWalletSelect = () => {
 };
 
 const wallet_input = ref("");
+let API = undefined as any;
 const state = {
   selectedTabId: "1",
   wallet_id: ref(""),
   whichWalletSelected: ref(""),
-  walletFound: ref(false),
+  walletFound: ref(),
   walletIsEnabled: false,
-  walletName: undefined,
+  walletName: ref(""),
   walletIcon: undefined,
-  walletAPIVersion: undefined,
+  walletAPIVersion: ref(),
   wallets: [],
 
-  networkId: undefined,
-  Utxos: undefined,
-  CollatUtxos: undefined,
-  balance: undefined,
-  changeAddress: undefined,
-  rewardAddress: undefined,
-  usedAddress: undefined,
+  networkId: ref(),
+  Utxos: ref(),
+  CollatUtxos: ref(),
+  balance: ref(),
+  changeAddress: ref(),
+  rewardAddress: ref(),
+  usedAddress: ref(),
 
   txBody: undefined,
   txBodyCborHex_unsigned: "",
