@@ -1,48 +1,5 @@
 <script lang="ts" setup>
 import { toggleDark } from "~/composables";
-import { ref, unref } from "vue";
-import { ClickOutside as vClickOutside } from "element-plus";
-
-const namiFound = !!(window as any).cardano.nami;
-const eternlFound = !!(window as any).cardano.eternl;
-const flintFound = !!(window as any).cardano.flint;
-
-const buttonRef = ref();
-const popoverRef = ref();
-const onClickOutside = () => {
-  unref(popoverRef).popperRef?.delayHide?.();
-};
-</script>
-
-<script lang="ts">
-import { mapState } from "vuex";
-
-export default {
-  data() {
-    return {
-      wallet: "eternl",
-    };
-  },
-
-  computed: {
-    ...mapState(["whichWalletSelected", "walletFound"]),
-  },
-
-  mounted() {
-    if (
-      localStorage.getItem("wallet") !== null &&
-      localStorage.getItem("wallet") !== ""
-    ) {
-      this.wallet = localStorage.getItem("wallet") as string;
-    }
-  },
-
-  methods: {
-    handleWalletSelect() {
-      localStorage.setItem("wallet", this.wallet);
-    },
-  },
-};
 </script>
 
 <template>
@@ -65,9 +22,6 @@ export default {
     <el-menu-item index="/CollectFromUtxoList">多钱包发送</el-menu-item>
 
     <div class="flex-grow" />
-    <el-menu-item ref="buttonRef" v-click-outside="onClickOutside">
-      Connect Wallet
-    </el-menu-item>
 
     <el-menu-item index="/BaseSetting">Base Setting</el-menu-item>
 
@@ -80,23 +34,6 @@ export default {
       </button>
     </el-menu-item>
   </el-menu>
-
-  <el-popover
-    ref="popoverRef"
-    :virtual-ref="buttonRef"
-    trigger="click"
-    virtual-triggering
-  >
-    <el-radio-group v-model="wallet" @change="handleWalletSelect">
-      <el-radio label="nami" size="large" :disabled="!namiFound">nami</el-radio>
-      <el-radio label="eternl" size="large" :disabled="!eternlFound"
-        >eternl</el-radio
-      >
-      <el-radio label="flint" size="large" :disabled="!flintFound"
-        >flint</el-radio
-      >
-    </el-radio-group>
-  </el-popover>
 </template>
 
 <style>

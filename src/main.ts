@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import CollectFromUtxoList from './components/CollectFromUtxoList.vue'
-import store from './components/store' // Import your Vuex store
+// import store from './components/store' // Import your Vuex store
 import { createRouter, createWebHistory } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 
@@ -29,6 +29,6 @@ const router = createRouter({
 
 const app = createApp(App)
 // app.use(ElementPlus);
-app.use(store)
+// app.use(store)
 app.use(router)
 app.mount('#app')

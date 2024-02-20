@@ -1,6 +1,3 @@
-<style>
-</style>
-
 <template>
   <el-descriptions title="Wallet Info">
     <el-descriptions-item label="Wallet Found">{{
@@ -51,7 +48,6 @@
 
 <script lang="ts">
 import axios from "axios";
-import { mapState, mapActions } from "vuex";
 import {
   Address,
   BaseAddress,
@@ -123,8 +119,8 @@ export default {
       API: undefined as any,
 
       selectedTabId: "1",
-      // whichWalletSelected: undefined as any,
-      // walletFound: false,
+      whichWalletSelected: undefined as any,
+      walletFound: false,
       walletIsEnabled: false,
       walletName: undefined as any,
       walletIcon: undefined as any,
@@ -184,12 +180,9 @@ export default {
     };
   },
 
-  computed: {
-    ...mapState(["whichWalletSelected", "walletFound"]),
-  },
+
 
   methods: {
-    ...mapActions(["updateWhichWalletSelected", "updateWalletFound"]),
 
     async submitTx() {
       const tx = "";
@@ -456,13 +449,13 @@ export default {
     },
 
     checkIfWalletFound() {
-      this.updateWalletFound(
-        !!(window as any).cardano?.[this.whichWalletSelected]
-      );
-      return this.walletFound;
+      // this.updateWalletFound(
+      //   !!(window as any).cardano?.[this.whichWalletSelected]
+      // );
+      // return this.walletFound;
+      return true;
     },
 
-    // 钱包连接下
   },
 };
 </script>
