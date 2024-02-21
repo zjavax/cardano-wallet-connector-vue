@@ -105,7 +105,7 @@ const refreshData = async () => {
         clearData();
       }
     } else {
-      (state.walletFound = ref(false)), (state.walletIsEnabled = ref(false));
+      clearData();
     }
   } catch (err) {
     console.log(err);
@@ -118,7 +118,12 @@ const clearData = () => {
   state.CollatUtxos.value = "";
   state.balance.value = "";
   state.changeAddress.value = "";
-  state.rewardAddress.value = false;
+  state.rewardAddress.value = "";
+  state.usedAddress.value = "";
+
+  state.walletAPIVersion.value = "";
+  state.walletName.value = "";
+  state.networkId.value = "";
 
   // state.txBody.value = false;
   // state.txBodyCborHex_unsigned.value = "";
