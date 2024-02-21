@@ -1,415 +1,478 @@
 <template>
-  <div class="common-layout">
-    <el-container>
-      <el-main>
-        <el-radio-group
-          v-model="state.wallet_id.value"
-          @change="handleWalletSelect"
-        >
-          <el-radio label="nami" size="large" :disabled="!namiFound"
-            >nami</el-radio
-          >
-          <el-radio label="eternl" size="large" :disabled="!eternlFound"
-            >eternl</el-radio
-          >
-          <el-radio label="flint" size="large" :disabled="!flintFound"
-            >flint</el-radio
-          >
+  <el-descriptions title="Wallet Info">
+    <el-descriptions-item label="Wallet Found">{{
+      walletFound
+    }}</el-descriptions-item>
+    <el-descriptions-item label="Telephone">18100000000</el-descriptions-item>
+    <el-descriptions-item label="Place">Suzhou</el-descriptions-item>
+    <el-descriptions-item label="Remarks">
+      <el-tag size="small">School</el-tag>
+    </el-descriptions-item>
+    <el-descriptions-item label="Address"
+      >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu
+      Province</el-descriptions-item
+    >
+  </el-descriptions>
 
-          <el-radio label="wallet_input" size="large">
-            <el-input v-model="wallet_input" placeholder="cip-30 wallet id">
-              <template #append>
-                <el-button :icon="Search" @click="handleWalletSelect" />
-              </template>
-            </el-input>
-          </el-radio>
-        </el-radio-group>
+  <div>
+    <el-button @click="refreshData">refreshData</el-button>
+    <el-button @click="submitTx">提交事务</el-button>
+    <el-button @click="addDataToDB([])">addDataToDB</el-button>
+    <el-button @click="getDataFromDB">getDataFromDB</el-button>
+    <el-button @click="clearDataToDB">clearDataToDB</el-button>
+    <el-input v-model="address" placeholder="address">
+      <template #append>
+        <el-button :icon="Search" @click="onSubmit" />
+      </template>
+    </el-input>
 
-        <el-descriptions title="Wallet Info" :column="1" size="large">
-          <el-descriptions-item label="Wallet Found:">{{
-            state.walletFound
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Wallet Connected:">{{
-            state.walletIsEnabled
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Wallet API version:">{{
-            state.walletAPIVersion
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Wallet name:">{{
-            state.walletName
-          }}</el-descriptions-item>
-          <el-descriptions-item
-            label="Network Id (0 = testnet; 1 = mainnet):"
-            >{{ state.networkId }}</el-descriptions-item
-          >
-          <el-descriptions-item
-            label="UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...):"
-            >{{ state.Utxos }}</el-descriptions-item
-          >
-          <el-descriptions-item label="Balance Lovelace:">{{
-            state.balance
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Change Address:">{{
-            state.changeAddress
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Staking Address:">{{
-            state.rewardAddress
-          }}</el-descriptions-item>
-          <el-descriptions-item label="Used Address:">{{
-            state.usedAddress
-          }}</el-descriptions-item>
-        </el-descriptions>
-      </el-main>
-    </el-container>
+    <el-table :data="utxos" style="width: 100%; margin-top: 20px">
+      <el-table-column label="Hash # Idx" width="600px">
+        <template #default="scope">
+          <span>{{ scope.row.tx_hash }}#{{ scope.row.unit }}</span>
+          <br />
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Amount">
+        <template #default="props">
+          <el-table :data="props.row.amount" :show-header="false">
+            <el-table-column prop="unit" />
+            <el-table-column prop="quantity" width="200px" />
+          </el-table>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from "vue";
-// import { onMounted } from "vue";
-import { Buffer } from "buffer";
+<script lang="ts">
 import axios from "axios";
-import { Search } from "@element-plus/icons-vue";
 import {
   Address,
-  Value,
+  BaseAddress,
+  MultiAsset,
+  Assets,
+  ScriptHash,
+  Costmdls,
+  Language,
+  CostModel,
+  AssetName,
   TransactionUnspentOutput,
+  TransactionUnspentOutputs,
+  TransactionOutput,
+  Value,
+  TransactionBuilder,
+  TransactionBuilderConfigBuilder,
+  TransactionOutputBuilder,
+  LinearFee,
+  BigNum,
+  BigInt,
+  TransactionHash,
+  TransactionInputs,
+  TransactionInput,
+  TransactionWitnessSet,
+  Transaction,
+  PlutusData,
+  PlutusScripts,
+  PlutusScript,
+  PlutusList,
+  Redeemers,
+  Redeemer,
+  RedeemerTag,
+  Ed25519KeyHashes,
+  ConstrPlutusData,
+  ExUnits,
+  Int,
+  NetworkInfo,
+  EnterpriseAddress,
+  TransactionOutputs,
+  hash_transaction,
+  hash_script_data,
+  hash_plutus_data,
+  ScriptDataHash,
+  Ed25519KeyHash,
+  NativeScript,
+  StakeCredential,
 } from "@emurgo/cardano-serialization-lib-asmjs";
+import { Buffer } from "buffer";
 
 const namiFound = !!(window as any).cardano.nami;
 const eternlFound = !!(window as any).cardano.eternl;
 const flintFound = !!(window as any).cardano.flint;
 
-// onMounted(() => {
-//   checkIfWalletFound();
-// });
+const DB_NAME = "TestDB";
+const STORE_NAME = "utxoMap";
 
-const refreshData = async () => {
-  // generateScriptAddress()
+let db: IDBDatabase;
 
-  try {
-    const walletFound = checkIfWalletFound();
-    if (walletFound) {
-      await getAPIVersion();
-      await getWalletName();
-      const walletEnabled = await enableWallet();
-      if (walletEnabled) {
-        await getNetworkId();
-        await getUtxos();
-        await getCollateral();
-        await getBalance();
-        await getChangeAddress();
-        await getRewardAddresses();
-        await getUsedAddresses();
-      } else {
-        clearData();
-      }
-    } else {
-      clearData();
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
+var baseUrl = "http://localhost:8080/";
 
-const clearData = () => {
-  state.walletIsEnabled.value = false;
-  state.Utxos.value = "";
-  state.CollatUtxos.value = "";
-  state.balance.value = "";
-  state.changeAddress.value = "";
-  state.rewardAddress.value = "";
-  state.usedAddress.value = "";
+export default {
+  data() {
+    return {
+      // address:
+      //   "addr1qxu7nks0vt5te3dx2wmwq5ytz7td8hsvytl2zwkrjvwm0vmy3va7sk0l7yrpe9m3s3230ynqef8p0997ddhvkpkrkuysdhwdrg",
+      address:
+        "addr_test1qqvrxad4q4426ajkaddj5cl653mcr99svv4x87ke0uuhzheghnevm2hmuu6j5ncfe0yvzfm6wfrary64wuhd7jufetnq4zalvc",
+      utxos: [] as any[],
+      API: undefined as any,
 
-  state.walletAPIVersion.value = "";
-  state.walletName.value = "";
-  state.networkId.value = "";
+      selectedTabId: "1",
+      whichWalletSelected: undefined as any,
+      walletFound: false,
+      walletIsEnabled: false,
+      walletName: undefined as any,
+      walletIcon: undefined as any,
+      walletAPIVersion: undefined as any,
+      wallets: [],
 
-  // state.txBody.value = false;
-  // state.txBodyCborHex_unsigned.value = "";
-  // state.txBodyCborHex_signed.value = "";
-  // state.submittedTxHash.value = "";
-};
+      networkId: undefined as any,
+      Utxos: undefined as any,
+      CollatUtxos: undefined as any,
+      balance: undefined as any,
+      changeAddress: undefined as any,
+      rewardAddress: undefined as any,
+      usedAddress: undefined as any,
 
-const refreshData1 = async () => {
-  const walletFound = checkIfWalletFound();
-  if (walletFound) {
-    await getAPIVersion();
-    await getWalletName();
-    const walletEnabled = await enableWallet();
-    if (walletEnabled) {
-      await getNetworkId();
-      await getUtxos();
-      // await getCollateral();
-      await getBalance();
-      await getChangeAddress();
-      await getRewardAddresses();
-      await getUsedAddresses();
-    }
-  } else {
-    state.walletIsEnabled.value = false;
-  }
-};
+      txBody: undefined as any,
+      txBodyCborHex_unsigned: "",
+      txBodyCborHex_signed: "",
+      submittedTxHash: "",
 
-const getUtxos = async () => {
-  let Utxos = [];
+      addressBech32SendADA:
+        "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
+      lovelaceToSend: 3000000,
+      assetNameHex: "4c494645",
+      assetPolicyIdHex:
+        "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
+      assetAmountToSend: 5,
+      addressScriptBech32:
+        "addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8",
+      datumStr: "12345678",
+      plutusScriptCborHex: "4e4d01000033222220051200120011",
+      transactionIdLocked: "",
+      transactionIndxLocked: 0,
+      lovelaceLocked: 3000000,
+      manualFee: 900000,
+    };
+  },
 
-  try {
-    const rawUtxos = await API.getUtxos();
+  mounted() {
+    const request = indexedDB.open(DB_NAME, 2);
 
-    for (const rawUtxo of rawUtxos) {
-      const utxo = TransactionUnspentOutput.from_bytes(
-        Buffer.from(rawUtxo, "hex")
-      );
-      const input = utxo.input();
-      const txid = Buffer.from(
-        input.transaction_id().to_bytes() as any,
-        "utf8"
-      ).toString("hex");
-      const txindx = input.index();
-      const output = utxo.output();
-      const amount = output.amount().coin().to_str(); // ADA amount in lovelace
-      const multiasset = output.amount().multiasset();
-      let multiAssetStr = "";
+    request.onerror = (event) => {
+      console.log("打开数据库出错！", (event.target as any).error);
+    };
 
-      if (multiasset) {
-        const keys = multiasset.keys(); // policy Ids of thee multiasset
-        const N = keys.len();
-        // console.log(`${N} Multiassets in the UTXO`)
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as any).result;
+      // const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      // store.createIndex("id", "id", { unique: true });
 
-        for (let i = 0; i < N; i++) {
-          const policyId = keys.get(i);
-          const policyIdHex = Buffer.from(
-            policyId.to_bytes() as any,
-            "utf8"
-          ).toString("hex");
-          // console.log(`policyId: ${policyIdHex}`)
-          const assets = multiasset.get(policyId);
-          const assetNames = (assets as any).keys();
-          const K = assetNames.len();
-          // console.log(`${K} Assets in the Multiasset`)
+      const store = db.createObjectStore(STORE_NAME);
+    };
 
-          for (let j = 0; j < K; j++) {
-            const assetName = assetNames.get(j);
-            const assetNameString = Buffer.from(
-              assetName.name(),
-              "utf8"
-            ).toString();
-            const assetNameHex = Buffer.from(assetName.name(), "utf8").toString(
-              "hex"
-            );
-            const multiassetAmt = multiasset.get_asset(policyId, assetName);
-            multiAssetStr += `+ ${multiassetAmt.to_str()} + ${policyIdHex}.${assetNameHex} (${assetNameString})`;
-            // console.log(assetNameString)
-            // console.log(`Asset Name: ${assetNameHex}`)
-          }
+    request.onsuccess = (event) => {
+      db = request.result;
+      console.log("成功打开数据库！");
+      this.getDataFromDB();
+    };
+  },
+
+
+
+  methods: {
+
+    async submitTx() {
+      const tx = "";
+      const submittedTxHash = await this.API.submitTx(tx);
+      console.log(submittedTxHash);
+    },
+
+    clearDataToDB() {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+
+      transaction.oncomplete = () => {
+        console.log("清除数据库！");
+      };
+    },
+
+    deleteDataToDBByAddress(address: string) {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      store.delete(address);
+
+      transaction.oncomplete = () => {
+        console.log("删除数据！");
+      };
+    },
+
+    addDataToDB(utxos: []) {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+
+      store.add(utxos, this.address);
+
+      transaction.oncomplete = () => {
+        console.log("成功添加数据到数据库！");
+      };
+
+      transaction.onerror = (event) => {
+        console.log("添加数据到数据库出错！", (event.target as any).error);
+      };
+    },
+
+    getDataFromDB() {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(this.address);
+
+      request.onsuccess = (event) => {
+        this.utxos = (event.target as any).result;
+        // event.target.result
+        console.log((event.target as any).result);
+      };
+      request.onerror = (event) => {
+        console.log("从数据库获取数据出错！", (event.target as any).error);
+      };
+    },
+
+    onSubmit() {
+      axios
+        .get(
+          baseUrl +
+            "utxo/getUtxoByAddress?address=" +
+            this.address +
+            "&count=" +
+            100 +
+            "&page=" +
+            1
+        )
+        .then((res: any) => {
+          this.utxos = res.data.value;
+
+          this.deleteDataToDBByAddress(this.address);
+          this.addDataToDB(res.data.value);
+        })
+        .catch((err: any) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    },
+
+    // 钱包连接上
+    async refreshData() {
+      if (this.checkIfWalletFound()) {
+        await this.getAPIVersion();
+        await this.getWalletName();
+        const walletEnabled = await this.enableWallet();
+        if (walletEnabled) {
+          await this.getNetworkId();
+          await this.getUtxos();
+          await this.getCollateral();
+          // await this.getBalance();
+          // await this.getChangeAddress();
+          // await this.getRewardAddresses();
+          await this.getUsedAddresses();
         }
       }
+    },
 
-      const obj = {
-        txid: txid,
-        txindx: txindx,
-        amount: amount,
-        str: `${txid} #${txindx} = ${amount}`,
-        multiAssetStr: multiAssetStr,
-        TransactionUnspentOutput: utxo,
-      };
-      Utxos.push(obj);
-      // console.log(`utxo: ${str}`)
-    }
-    state.Utxos.value = Utxos;
-  } catch (err) {
-    console.log(err);
-  }
-};
+    async getUtxos() {
+      let Utxos = [];
 
-const getUsedAddresses = async () => {
-  try {
-    const raw = await API.getUsedAddresses();
-    const rawFirst = raw[0];
-    const usedAddress = Address.from_bytes(
-      Buffer.from(rawFirst, "hex")
-    ).to_bech32();
-    // console.log(rewardAddress)
-    state.usedAddress.value = usedAddress;
-  } catch (err) {
-    console.log(err);
-  }
-};
+      try {
+        const rawUtxos = await this.API.getUtxos();
+        console.log(rawUtxos);
 
-const getCollateral = async () => {
-  let CollatUtxos = [];
+        for (const rawUtxo of rawUtxos) {
+          const utxo = TransactionUnspentOutput.from_bytes(
+            Buffer.from(rawUtxo, "hex")
+          );
+          const input = utxo.input();
 
-  try {
-    let collateral = [];
+          const txid = Buffer.from(
+            input.transaction_id().to_bytes() as any,
+            "utf8"
+          ).toString("hex");
 
-    const wallet = state.whichWalletSelected.value;
-    if (wallet === "nami") {
-      collateral = await API.experimental.getCollateral();
-    } else {
-      collateral = await API.getCollateral();
-    }
+          const txindx = input.index();
+          const output = utxo.output();
+          const amount = output.amount().coin().to_str(); // ADA amount in lovelace
+          const multiasset = output.amount().multiasset();
+          let multiAssetStr = "";
 
-    for (const x of collateral) {
-      const utxo = TransactionUnspentOutput.from_bytes(Buffer.from(x, "hex"));
-      CollatUtxos.push(utxo);
-      // console.log(utxo)
-    }
+          if (multiasset) {
+            const keys = multiasset.keys(); // policy Ids of thee multiasset
+            const N = keys.len();
+            // console.log(`${N} Multiassets in the UTXO`)
 
-    state.CollatUtxos.value = CollatUtxos;
-  } catch (err) {
-    console.log(err);
-  }
-};
+            for (let i = 0; i < N; i++) {
+              const policyId = keys.get(i);
+              const policyIdHex = Buffer.from(
+                policyId.to_bytes() as any,
+                "utf8"
+              ).toString("hex");
+              // console.log(`policyId: ${policyIdHex}`)
+              const assets = multiasset.get(policyId);
+              const assetNames = (assets as any).keys();
+              const K = assetNames.len();
+              // console.log(`${K} Assets in the Multiasset`)
 
-const getBalance = async () => {
-  try {
-    const balanceCBORHex = await API.getBalance();
+              for (let j = 0; j < K; j++) {
+                const assetName = assetNames.get(j);
+                const assetNameString = Buffer.from(
+                  assetName.name(),
+                  "utf8"
+                ).toString();
+                const assetNameHex = Buffer.from(
+                  assetName.name(),
+                  "utf8"
+                ).toString("hex");
+                const multiassetAmt = multiasset.get_asset(policyId, assetName);
+                multiAssetStr += `+ ${multiassetAmt.to_str()} + ${policyIdHex}.${assetNameHex} (${assetNameString})`;
+                // console.log(assetNameString)
+                // console.log(`Asset Name: ${assetNameHex}`)
+              }
+            }
+          }
 
-    const balance = Value.from_bytes(Buffer.from(balanceCBORHex, "hex"))
-      .coin()
-      .to_str();
+          const obj = {
+            txid: txid,
+            txindx: txindx,
+            amount: amount,
+            str: `${txid} #${txindx} = ${amount}`,
+            multiAssetStr: multiAssetStr,
+            TransactionUnspentOutput: utxo,
+          };
+          Utxos.push(obj);
+          // console.log(`utxo: ${str}`)
+        }
+        console.log(Utxos);
+        this.Utxos = Utxos;
+      } catch (err) {
+        console.log(err);
+      }
+    },
 
-    state.balance.value = balance;
-  } catch (err) {
-    console.log(err);
-  }
-};
+    async getCollateral() {
+      let CollatUtxos = [];
 
-const getChangeAddress = async () => {
-  try {
-    const raw = await API.getChangeAddress();
-    const changeAddress = Address.from_bytes(
-      Buffer.from(raw, "hex")
-    ).to_bech32();
-    state.changeAddress.value = changeAddress;
-  } catch (err) {
-    console.log(err);
-  }
-};
+      try {
+        let collateral = [];
 
-const getRewardAddresses = async () => {
-  try {
-    const raw = await API.getRewardAddresses();
-    const rawFirst = raw[0];
-    const rewardAddress = Address.from_bytes(
-      Buffer.from(rawFirst, "hex")
-    ).to_bech32();
+        const wallet = this.whichWalletSelected;
+        if (wallet === "nami") {
+          collateral = await this.API.experimental.getCollateral();
+        } else {
+          collateral = await this.API.getCollateral();
+        }
 
-    state.rewardAddress.value = rewardAddress;
-  } catch (err) {
-    console.log(err);
-  }
-};
+        console.log(collateral);
+        console.log(123);
 
-const getNetworkId = async () => {
-  try {
-    const networkId = await API.getNetworkId();
-    state.networkId.value = networkId;
-  } catch (err) {
-    console.log(err);
-  }
-};
+        for (const x of collateral) {
+          const utxo = TransactionUnspentOutput.from_bytes(
+            Buffer.from(x, "hex")
+          );
+          CollatUtxos.push(utxo);
+          // console.log(utxo)
+        }
+        this.CollatUtxos = CollatUtxos;
+      } catch (err) {
+        console.log(err);
+      }
+    },
 
-const enableWallet = async () => {
-  try {
-    // window.cardano.nami.enable();
-    API = await (window as any).cardano[
-      state.whichWalletSelected.value
-    ].enable();
-  } catch (err) {
-    console.log(err);
-  }
-  return checkIfWalletEnabled();
-};
+    async getUsedAddresses() {
+      try {
+        const raw = await this.API.getUsedAddresses();
+        const rawFirst = raw[1];
+        const usedAddress = Address.from_bytes(
+          Buffer.from(rawFirst, "hex")
+        ).to_bech32();
+        this.usedAddress = usedAddress;
+      } catch (err) {
+        console.log(err);
+      }
+    },
 
-const checkIfWalletEnabled = async () => {
-  let walletIsEnabled = false;
+    async getNetworkId() {
+      try {
+        const networkId = await this.API.getNetworkId();
+        console.log(networkId);
+      } catch (err) {
+        console.log(err);
+      }
+    },
 
-  try {
-    const walletName = state.whichWalletSelected.value;
-    walletIsEnabled = await window.cardano[walletName].isEnabled();
-  } catch (err) {
-    console.log(err);
-    walletIsEnabled = false;
-  }
+    async enableWallet() {
+      try {
+        // window.cardano.nami.enable();
+        this.API = await (window as any).cardano[
+          this.whichWalletSelected
+        ].enable();
+      } catch (err) {
+        console.log(err);
+      }
+      return this.checkIfWalletEnabled();
+    },
 
-  state.walletIsEnabled.value = walletIsEnabled;
-  return walletIsEnabled;
-};
+    async checkIfWalletEnabled() {
+      let walletIsEnabled = false;
 
-const getWalletName = () => {
-  const walletKey = state.whichWalletSelected.value;
-  const walletName = window?.cardano?.[walletKey].name;
-  state.walletName.value = walletName;
-  return walletName;
-};
+      try {
+        walletIsEnabled = await (window as any).cardano[
+          this.whichWalletSelected
+        ].isEnabled();
+      } catch (err) {
+        console.log(err);
+      }
 
-const getAPIVersion = async () => {
-  const walletAPIVersion = (window as any)?.cardano?.[
-    state.whichWalletSelected.value
-  ].apiVersion;
-  state.walletAPIVersion.value = walletAPIVersion;
-  return walletAPIVersion;
-};
+      return walletIsEnabled;
+    },
 
-// 检查浏览器是否有钱包（但是不检查钱包是否开启dapp(enable)）
-const checkIfWalletFound = () => {
-  const walletKey = state.whichWalletSelected.value;
-  const walletFound = !!window?.cardano?.[walletKey];
-  state.walletFound.value = walletFound;
-  return walletFound;
-};
+    getAPIVersion() {
+      const walletAPIVersion = (window as any)?.cardano?.[
+        this.whichWalletSelected
+      ].apiVersion;
+      return walletAPIVersion;
+    },
 
-const handleWalletSelect = () => {
-  state.whichWalletSelected.value = state.wallet_id.value;
-  if (state.wallet_id.value == "wallet_input") {
-    state.whichWalletSelected.value = wallet_input.value;
-  }
+    getWalletName() {
+      const walletName = (window as any)?.cardano?.[this.whichWalletSelected]
+        .name;
+      return walletName;
+    },
 
-  console.log(state.whichWalletSelected.value);
-  refreshData();
-};
+    checkIfWalletFound() {
+      // this.updateWalletFound(
+      //   !!(window as any).cardano?.[this.whichWalletSelected]
+      // );
+      // return this.walletFound;
+      return true;
+    },
 
-const wallet_input = ref("");
-let API = undefined as any;
-const state = {
-  selectedTabId: "1",
-  wallet_id: ref(""),
-  whichWalletSelected: ref(""),
-  walletFound: ref(false),
-  walletIsEnabled: ref(false),
-  walletName: ref(),
-  walletIcon: undefined,
-  walletAPIVersion: ref(),
-  wallets: [],
+    // checkIfWalletFound = () => {
+    //     const walletKey = this.state.whichWalletSelected
+    //     const walletFound = !!window?.cardano?.[walletKey]
+    //     this.setState({ walletFound })
+    //     return walletFound
+    // }
 
-  networkId: ref(),
-  Utxos: ref(),
-  CollatUtxos: ref(),
-  balance: ref(),
-  changeAddress: ref(),
-  rewardAddress: ref(),
-  usedAddress: ref(),
-
-  txBody: undefined,
-  txBodyCborHex_unsigned: "",
-  txBodyCborHex_signed: "",
-  submittedTxHash: "",
-
-  addressBech32SendADA:
-    "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
-  lovelaceToSend: 3000000,
-  assetNameHex: "7447454e53",
-  assetPolicyIdHex: "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
-  assetAmountToSend: 5,
-  addressScriptBech32:
-    "addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8",
-  datumStr: "12345678",
-  plutusScriptCborHex: "4e4d01000033222220051200120011",
-  transactionIdLocked: "",
-  transactionIndxLocked: 0,
-  lovelaceLocked: 3000000,
-  manualFee: 900000,
+  },
 };
 </script>
+
+
+<script setup lang="ts">
+import { Search } from "@element-plus/icons-vue";
+</script>
+
+
+
+
+

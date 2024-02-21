@@ -20,6 +20,7 @@ import { toggleDark } from "~/composables";
     <el-menu-item index="3" disabled>Info</el-menu-item>
     <el-menu-item index="4">Orders</el-menu-item> -->
     <el-menu-item index="/CollectFromUtxoList">多钱包发送</el-menu-item>
+    <el-menu-item index="/WalletInfo">Wallet Info</el-menu-item>
 
     <div class="flex-grow" />
 

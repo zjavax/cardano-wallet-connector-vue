@@ -4,6 +4,7 @@ import CollectFromUtxoList from './components/CollectFromUtxoList.vue'
 // import store from './components/store' // Import your Vuex store
 import { createRouter, createWebHistory } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import WalletInfo from './components/WalletInfo.vue'
 
 // import "~/styles/element/index.scss";
 
@@ -22,8 +23,9 @@ import 'element-plus/theme-chalk/src/message.scss'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
     { path: '/', component: HelloWorld },
+    { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
+    { path: '/WalletInfo', component: WalletInfo },
   ],
 })
 

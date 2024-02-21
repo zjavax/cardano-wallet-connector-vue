@@ -36,10 +36,10 @@ declare module 'vue' {
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTag: typeof import('element-plus/es')['ElTag']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
-    'HelloWorld copy': typeof import('./components/HelloWorld copy.vue')['default']
     Logos: typeof import('./components/Logos.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Test1: typeof import('./components/Test1.vue')['default']
+    WalletInfo: typeof import('./components/WalletInfo.vue')['default']
   }
 }
