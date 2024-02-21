@@ -32,46 +32,32 @@
           <el-descriptions-item label="Wallet Connected:">{{
             state.walletIsEnabled
           }}</el-descriptions-item>
-          <el-descriptions-item
-            label="Wallet API version:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.walletAPIVersion }}</el-descriptions-item
-          >
-          <el-descriptions-item
-            label="Wallet name:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.walletName }}</el-descriptions-item
-          >
+          <el-descriptions-item label="Wallet API version:">{{
+            state.walletAPIVersion
+          }}</el-descriptions-item>
+          <el-descriptions-item label="Wallet name:">{{
+            state.walletName
+          }}</el-descriptions-item>
           <el-descriptions-item
             label="Network Id (0 = testnet; 1 = mainnet):"
-            v-if="state.walletIsEnabled.value"
             >{{ state.networkId }}</el-descriptions-item
           >
           <el-descriptions-item
             label="UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...):"
-            v-if="state.walletIsEnabled.value"
             >{{ state.Utxos }}</el-descriptions-item
           >
-          <el-descriptions-item
-            label="Balance Lovelace:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.balance }}</el-descriptions-item
-          >
-          <el-descriptions-item
-            label="Change Address:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.changeAddress }}</el-descriptions-item
-          >
-          <el-descriptions-item
-            label="Staking Address:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.rewardAddress }}</el-descriptions-item
-          >
-          <el-descriptions-item
-            label="Used Address:"
-            v-if="state.walletIsEnabled.value"
-            >{{ state.usedAddress }}</el-descriptions-item
-          >
+          <el-descriptions-item label="Balance Lovelace:">{{
+            state.balance
+          }}</el-descriptions-item>
+          <el-descriptions-item label="Change Address:">{{
+            state.changeAddress
+          }}</el-descriptions-item>
+          <el-descriptions-item label="Staking Address:">{{
+            state.rewardAddress
+          }}</el-descriptions-item>
+          <el-descriptions-item label="Used Address:">{{
+            state.usedAddress
+          }}</el-descriptions-item>
         </el-descriptions>
       </el-main>
     </el-container>
@@ -388,7 +374,7 @@ const state = {
   whichWalletSelected: ref(""),
   walletFound: ref(false),
   walletIsEnabled: ref(false),
-  walletName: ref(""),
+  walletName: ref(),
   walletIcon: undefined,
   walletAPIVersion: ref(),
   wallets: [],
