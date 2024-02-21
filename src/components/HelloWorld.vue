@@ -26,36 +26,51 @@
         </el-radio-group>
 
         <el-descriptions title="Wallet Info" :column="1" size="large">
-          <el-descriptions-item label="Wallet Found">{{
+          <el-descriptions-item label="Wallet Found:">{{
             state.walletFound
           }}</el-descriptions-item>
-          <el-descriptions-item label="Wallet Connected"
-            >state.walletFound.value</el-descriptions-item
-          >
-          <el-descriptions-item label="Wallet API version">{{
-            state.walletAPIVersion
+          <el-descriptions-item label="Wallet Connected:">{{
+            state.walletIsEnabled
           }}</el-descriptions-item>
-          <el-descriptions-item label="Wallet name:"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Wallet API version:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.walletAPIVersion }}</el-descriptions-item
           >
-          <el-descriptions-item label="Network Id (0 = testnet; 1 = mainnet):"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Wallet name:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.walletName }}</el-descriptions-item
+          >
+          <el-descriptions-item
+            label="Network Id (0 = testnet; 1 = mainnet):"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.networkId }}</el-descriptions-item
           >
           <el-descriptions-item
             label="UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...):"
-            >Suzhou</el-descriptions-item
+            v-if="state.walletIsEnabled.value"
+            >{{ state.Utxos }}</el-descriptions-item
           >
-          <el-descriptions-item label="Balance Lovelace:"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Balance Lovelace:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.balance }}</el-descriptions-item
           >
-          <el-descriptions-item label="Change Address:"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Change Address:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.changeAddress }}</el-descriptions-item
           >
-          <el-descriptions-item label="Staking Address:"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Staking Address:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.rewardAddress }}</el-descriptions-item
           >
-          <el-descriptions-item label="Used Address:"
-            >Suzhou</el-descriptions-item
+          <el-descriptions-item
+            label="Used Address:"
+            v-if="state.walletIsEnabled.value"
+            >{{ state.usedAddress }}</el-descriptions-item
           >
         </el-descriptions>
       </el-main>
@@ -65,6 +80,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+// import { onMounted } from "vue";
 import { Buffer } from "buffer";
 import axios from "axios";
 import { Search } from "@element-plus/icons-vue";
@@ -78,20 +94,69 @@ const namiFound = !!(window as any).cardano.nami;
 const eternlFound = !!(window as any).cardano.eternl;
 const flintFound = !!(window as any).cardano.flint;
 
+// onMounted(() => {
+//   checkIfWalletFound();
+// });
+
 const refreshData = async () => {
-  if (checkIfWalletFound()) {
+  // generateScriptAddress()
+
+  try {
+    const walletFound = checkIfWalletFound();
+    if (walletFound) {
+      await getAPIVersion();
+      await getWalletName();
+      const walletEnabled = await enableWallet();
+      if (walletEnabled) {
+        await getNetworkId();
+        await getUtxos();
+        await getCollateral();
+        await getBalance();
+        await getChangeAddress();
+        await getRewardAddresses();
+        await getUsedAddresses();
+      } else {
+        clearData();
+      }
+    } else {
+      (state.walletFound = ref(false)), (state.walletIsEnabled = ref(false));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const clearData = () => {
+  state.walletIsEnabled.value = false;
+  state.Utxos.value = "";
+  state.CollatUtxos.value = "";
+  state.balance.value = "";
+  state.changeAddress.value = "";
+  state.rewardAddress.value = false;
+
+  // state.txBody.value = false;
+  // state.txBodyCborHex_unsigned.value = "";
+  // state.txBodyCborHex_signed.value = "";
+  // state.submittedTxHash.value = "";
+};
+
+const refreshData1 = async () => {
+  const walletFound = checkIfWalletFound();
+  if (walletFound) {
     await getAPIVersion();
     await getWalletName();
     const walletEnabled = await enableWallet();
     if (walletEnabled) {
       await getNetworkId();
       await getUtxos();
-      await getCollateral();
+      // await getCollateral();
       await getBalance();
       await getChangeAddress();
       await getRewardAddresses();
       await getUsedAddresses();
     }
+  } else {
+    state.walletIsEnabled.value = false;
   }
 };
 
@@ -275,9 +340,10 @@ const checkIfWalletEnabled = async () => {
     walletIsEnabled = await window.cardano[walletName].isEnabled();
   } catch (err) {
     console.log(err);
+    walletIsEnabled = false;
   }
 
-  state.walletIsEnabled = walletIsEnabled;
+  state.walletIsEnabled.value = walletIsEnabled;
   return walletIsEnabled;
 };
 
@@ -320,8 +386,8 @@ const state = {
   selectedTabId: "1",
   wallet_id: ref(""),
   whichWalletSelected: ref(""),
-  walletFound: ref(),
-  walletIsEnabled: false,
+  walletFound: ref(false),
+  walletIsEnabled: ref(false),
   walletName: ref(""),
   walletIcon: undefined,
   walletAPIVersion: ref(),
