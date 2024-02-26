@@ -5,6 +5,8 @@ import CollectFromUtxoList from './components/CollectFromUtxoList.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 import WalletInfo from './components/WalletInfo.vue'
+import LucidTest from './components/LucidTest.vue'
+import DexHunter from './components/DexHunter.vue'
 
 // import "~/styles/element/index.scss";
 
@@ -23,9 +25,11 @@ import 'element-plus/theme-chalk/src/message.scss'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: HelloWorld },
+    { path: '/', component: LucidTest },
     { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
     { path: '/WalletInfo', component: WalletInfo },
+    { path: '/HelloWorld', component: HelloWorld },
+    { path: '/DexHunter', component: DexHunter },
   ],
 })
 
