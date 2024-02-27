@@ -38,3 +38,12 @@ npm config set registry http://registry.npm.taobao.org
 # 本项目UI模板
 
 https://vite-starter.element-plus.org/
+
+# 备注
+
+部署到云上，需要在config文件里配置host: '0.0.0.0'
+
+```
+export default defineConfig({
+  server: { host: '0.0.0.0', port: 4001 },
+```
