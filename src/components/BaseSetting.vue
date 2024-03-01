@@ -9,8 +9,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import axios from "axios";
+import * as dotenv from 'dotenv';
 
-const baseUrl = "http://localhost:8080/";
+dotenv.config();
+
+const baseUrl = "http://"+process.env.IP+":8080/";
 
 const utxoStrListStr = ref(
   "bcdc4360d9bffc13a26e9cfa88278fc9eb54ef87c60a2c8a3ac59bcb6a275852#0"

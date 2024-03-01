@@ -43,7 +43,11 @@ import {
   UTxO,
 } from "lucid-cardano";
 
-// var baseUrl = "http://localhost:8080/";
+// import * as dotenv from 'dotenv';
+
+// dotenv.config();
+
+// const baseUrl = "http://"+process.env.IP+":8080/";
 
 export default {
   data() {
