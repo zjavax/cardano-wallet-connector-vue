@@ -25,10 +25,10 @@ import 'element-plus/theme-chalk/src/message.scss'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: LucidTest },
+    { path: '/LucidTest', component: LucidTest },
     { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
     { path: '/WalletInfo', component: WalletInfo },
-    { path: '/HelloWorld', component: HelloWorld },
+    { path: '/', component: HelloWorld },
     { path: '/DexHunter', component: DexHunter },
   ],
 })

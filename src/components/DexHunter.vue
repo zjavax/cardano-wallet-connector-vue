@@ -45,11 +45,13 @@ const dh = reactive({
 
 const cborHexExcludeFee = ref("");
 
-import * as dotenv from "dotenv";
+// import * as dotenv from "dotenv";
 
-dotenv.config();
+// dotenv.config();
 
-const baseUrl = "http://" + process.env.IP + ":8080/";
+// const baseUrl = "http://" + process.env.IP + ":8080/";
+
+const baseUrl = "http://localhost:8080/";
 
 const onSubmit = async () => {
   axios
