@@ -28,7 +28,8 @@ const router = createRouter({
     { path: '/LucidTest', component: LucidTest },
     { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
     { path: '/WalletInfo', component: WalletInfo },
-    { path: '/', component: HelloWorld },
+    { path: '/', component: CollectFromUtxoList },
+    { path: '/HelloWorld', component: HelloWorld },
     { path: '/DexHunter', component: DexHunter },
   ],
 })

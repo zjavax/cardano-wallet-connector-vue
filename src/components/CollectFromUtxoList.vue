@@ -19,12 +19,7 @@
       </el-form-item>
 
       <el-form-item label="assetList">
-        <el-input
-          clearable
-          v-model="receiverData.assetListStr"
-          :formatter="formatValue"
-          :parser="parseValue"
-        />
+        <el-input clearable v-model="receiverData.assetListStr" />
       </el-form-item>
 
       <el-form-item label="signersCount" required>
@@ -67,27 +62,6 @@
       </el-form-item>
     </el-form>
 
-    <el-divider content-position="left">signed tx</el-divider>
-    <el-form label-width="200px">
-      <el-form-item label="cborHex_signed" required>
-        <el-input
-          type="textarea"
-          v-model="cborHex_signed"
-          clearable
-          :autosize="{ minRows: 6, maxRows: 12 }"
-        ></el-input>
-      </el-form-item>
-
-      <el-form-item>
-        <el-button type="primary" @click="sign(cborHex_signed)"
-          >Continue Sign</el-button
-        >
-        <el-button type="primary" @click="cborHex_to_tx_json(cborHex_signed)"
-          >to_tx_json</el-button
-        >
-      </el-form-item>
-    </el-form>
-
     <el-form label-width="200px">
       <el-form-item label="tx_json">
         <el-input
@@ -102,14 +76,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Transaction,
-  TransactionWitnessSet,
-} from "@emurgo/cardano-serialization-lib-asmjs";
+import { Transaction } from "@emurgo/cardano-serialization-lib-asmjs";
 import axios from "axios";
+import { Lucid } from "lucid-cardano"; // NPM
 import { ref } from "vue";
-import { Buffer } from "buffer";
-import { Blockfrost, Lucid } from "lucid-cardano"; // NPM
 // import * as dotenv from "dotenv";
 
 // dotenv.config();
@@ -130,12 +100,7 @@ const receiverData = ref({
 });
 
 let cborHex = ref("");
-
 let tx_json = ref("");
-
-let cborHex_signed = ref("");
-
-let API = undefined;
 
 // 定义对象类型
 const Asset = {
@@ -143,15 +108,6 @@ const Asset = {
   assetName: String,
   quantity: String,
 };
-
-function formatValue(value: any) {
-  return `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-// Define the parser function
-function parseValue(value: any) {
-  return value.replace(/\$\s?|(,*)/g, "");
-}
 
 const sign = async (hex: any) => {
   const api = await window.cardano.eternl.enable();
@@ -162,31 +118,8 @@ const sign = async (hex: any) => {
   const tx = lucid.fromTx(hex);
 
   const signedTx = await tx.sign().complete();
-  // const txHash = await signedTx.submit();
-  // console.log(txHash);
 
-  console.log(12);
-};
-
-const sign2 = async (hex: any) => {
-  const tx = Transaction.from_hex(hex);
-
-  API = await (window as any).cardano["eternl"].enable();
-  let txVkeyWitnesses = await API.signTx(cborHex.value, true);
-  console.log(txVkeyWitnesses);
-
-  txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-    Buffer.from(txVkeyWitnesses, "hex")
-  );
-  const transactionWitnessSet = TransactionWitnessSet.new();
-  transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
-
-  const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
-
-  const submittedTxHash = await API.submitTx(
-    Buffer.from(signedTx.to_bytes() as any, "utf8").toString("hex")
-  );
-  console.log(submittedTxHash);
+  cborHex.value = signedTx.toString();
 };
 
 const cborHex_to_tx_json = (hex: any) => {
@@ -194,12 +127,6 @@ const cborHex_to_tx_json = (hex: any) => {
   tx_json.value = tx.to_json();
   console.log(tx.to_json());
 };
-
-// const continue_sign = () => {
-//   const tx = Transaction.from_hex(cborHex.value);
-//   tx_json.value = tx.to_json();
-//   console.log(tx.to_json());
-// };
 
 const submitForm = () => {
   const receiverData2 = {
