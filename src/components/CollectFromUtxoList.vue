@@ -18,9 +18,9 @@
         <el-input v-model="receiverData.receiverAddress" clearable></el-input>
       </el-form-item>
 
-      <el-form-item label="assetList">
+      <!-- <el-form-item label="assetList">
         <el-input clearable v-model="receiverData.assetListStr" />
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item label="signersCount" required>
         <el-input-number v-model="receiverData.signersCount" :min="1" />
@@ -129,10 +129,15 @@ const cborHex_to_tx_json = (hex: any) => {
 };
 
 const submitForm = () => {
+  cborHex.value = "";
+
   const receiverData2 = {
     receiverAddress: receiverData.value.receiverAddress,
     signersCount: receiverData.value.signersCount,
-    stakeAddressList: receiverData.value.stakeAddressListStr.split("\n"),
+    stakeAddressList:
+      receiverData.value.stakeAddressListStr == ""
+        ? []
+        : receiverData.value.stakeAddressListStr.split("\n"),
     assetList: [
       {
         quantity: receiverData.value.assetListStr,
@@ -153,7 +158,7 @@ const submitForm = () => {
     .then((response) => {
       // Handle the response as needed
       console.log(response.data);
-      cborHex = response.data;
+      cborHex.value = response.data;
     })
     .catch((error) => {
       // Handle any errors

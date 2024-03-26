@@ -42,10 +42,9 @@
             label="Network Id (0 = testnet; 1 = mainnet):"
             >{{ state.networkId }}</el-descriptions-item
           >
-          <el-descriptions-item
-            label="UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...):"
-            >{{ state.Utxos }}</el-descriptions-item
-          >
+          <el-descriptions-item label="Used Address:">{{
+            state.usedAddress
+          }}</el-descriptions-item>
           <el-descriptions-item label="Balance Lovelace:">{{
             state.balance
           }}</el-descriptions-item>
@@ -55,9 +54,11 @@
           <el-descriptions-item label="Staking Address:">{{
             state.rewardAddress
           }}</el-descriptions-item>
-          <el-descriptions-item label="Used Address:">{{
-            state.usedAddress
-          }}</el-descriptions-item>
+
+          <el-descriptions-item
+            label="UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...):"
+            >{{ state.Utxos }}</el-descriptions-item
+          >
         </el-descriptions>
       </el-main>
     </el-container>
