@@ -19,10 +19,13 @@ import {
 
 const pathSrc = path.resolve(__dirname, 'src')
 
+import * as dotenv from 'dotenv'
+
+dotenv.config()
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  // server: { host: '0.0.0.0', port: 4001 },
-
+  server: { host: process.env.VITE_SERVER_IP, port: 4001 },
   resolve: {
     alias: {
       '~/': `${pathSrc}/`,
