@@ -47,3 +47,5 @@ https://vite-starter.element-plus.org/
 export default defineConfig({
   server: { host: '0.0.0.0', port: 4001 },
 ```
+
+live-server --port=4001 --host=0.0.0.0

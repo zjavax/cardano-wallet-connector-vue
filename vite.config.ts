@@ -136,6 +136,8 @@ export default defineConfig({
           clipboard: 'ClipboardJS',
           'sql-formatter': 'sqlFormatter',
         }) as any,
+        // 将 visualizer 插件放到最后
+        visualizer(),
       ],
     },
   },
