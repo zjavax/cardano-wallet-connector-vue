@@ -4,6 +4,8 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+tool-plus
+.env
 *.local
 
 # lock
@@ -13,4 +15,4 @@ pnpm-lock.yaml
 
 *.log
 
-.env
+

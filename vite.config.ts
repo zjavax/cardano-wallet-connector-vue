@@ -17,6 +17,7 @@ import {
   transformerVariantGroup,
 } from 'unocss'
 import * as dotenv from 'dotenv'
+import { builtinModules } from 'module'
 
 // 打包体积分析 npm i rollup-plugin-visualizer -D
 import { visualizer } from 'rollup-plugin-visualizer'
@@ -101,6 +102,8 @@ export default defineConfig({
     rollupOptions: {
       // // 打包时忽略某些包，避免打包时间过长
       external: [
+        ...builtinModules,
+        /^node:/,
         'vue',
         'vue-router',
         'pinia',
