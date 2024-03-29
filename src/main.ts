@@ -1,12 +1,12 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import CollectFromUtxoList from './components/CollectFromUtxoList.vue'
+// import CollectFromUtxoList from './components/CollectFromUtxoList.vue'
 // import store from './components/store' // Import your Vuex store
 import { createRouter, createWebHistory } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-import WalletInfo from './components/WalletInfo.vue'
-import LucidTest from './components/LucidTest.vue'
-import DexHunter from './components/DexHunter.vue'
+// import HelloWorld from './components/HelloWorld.vue'
+// import WalletInfo from './components/WalletInfo.vue'
+// import LucidTest from './components/LucidTest.vue'
+// import DexHunter from './components/DexHunter.vue'
 
 // import "~/styles/element/index.scss";
 
@@ -25,12 +25,32 @@ import 'element-plus/theme-chalk/src/message.scss'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/LucidTest', component: LucidTest },
-    { path: '/CollectFromUtxoList', component: CollectFromUtxoList },
-    { path: '/WalletInfo', component: WalletInfo },
-    { path: '/', component: CollectFromUtxoList },
-    { path: '/HelloWorld', component: HelloWorld },
-    { path: '/DexHunter', component: DexHunter },
+    // { path: '/LucidTest', component: LucidTest },
+    {
+      path: '/LucidTest',
+      component: () => import('./components/LucidTest.vue'),
+    },
+    {
+      path: '/CollectFromUtxoList',
+      component: () => import('./components/CollectFromUtxoList.vue'),
+    },
+
+    {
+      path: '/WalletInfo',
+      component: () => import('./components/WalletInfo.vue'),
+    },
+    {
+      path: '/',
+      component: () => import('./components/CollectFromUtxoList.vue'),
+    },
+    {
+      path: '/HelloWorld',
+      component: () => import('./components/HelloWorld.vue'),
+    },
+    {
+      path: '/DexHunter',
+      component: () => import('./components/DexHunter.vue'),
+    },
   ],
 })
 
