@@ -1,8 +1,7 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
-  "devDependencies": {
-    "vite": "^4.4.0",
-    "@vitejs/plugin-vue": "^4.2.3"
-  }
+  "devCommand": "npm run dev",
+  "outputDirectory": "dist",
+  "framework": "vite"
 }
